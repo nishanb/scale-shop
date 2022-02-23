@@ -1,0 +1,5 @@
+openapi: 3.0.0
+info:
+    title: ECOM APP API
+    description: ECOM Shopping Site API Documentation
+    version: 1.1.0
