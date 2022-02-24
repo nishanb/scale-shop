@@ -21,10 +21,8 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 //morgan middleware
 app.use(morgan("tiny"));
 
-//import all routes
-const home = require("./routes/home");
-
 //routes middlewares
-app.use("/api/v1", home);
+app.use("/api/v1", require("./routes/home"));
+app.use("/api/v1/user", require("./routes/user"));
 
 module.exports = app;
