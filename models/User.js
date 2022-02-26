@@ -30,11 +30,11 @@ const userSchema = new mongoose.Schema({
 	photo: {
 		id: {
 			type: String,
-			required: true,
+			required: false,
 		},
 		secure_url: {
 			type: String,
-			required: true,
+			required: false,
 		},
 	},
 	forgotPasswordToken: {
@@ -94,4 +94,4 @@ userSchema.methods.getForgotPasswordToken = function () {
 	return token;
 };
 
-userSchema.methods.module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("User", userSchema);
