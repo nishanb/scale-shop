@@ -11,15 +11,15 @@ const {
 	updateUser,
 } = require("../controllers/userController");
 
-//user related
-router.route("/").get(getUser);
-router.route("/").patch(updateUser);
-router.route("/password").patch(updatePassword);
-
 //auth related
 router.route("/signup").post(signup);
 router.route("/login").post(login);
 router.route("/logout").post(logout);
+
+//user related
+router.route("/").get(getUser);
+router.route("/").patch(updateUser);
+router.route("/password").patch(updatePassword);
 
 //password related
 router.route("/forgotpassword").post(forgotPassword);

@@ -3,6 +3,7 @@ const User = require("./../models/User");
 const cloudinary = require("cloudinary");
 const requestHandler = require("../middlewares/requestHandler");
 const CustomError = require("../utils/CustomError");
+const sendEmail = require("./../utils/emailHelper");
 
 module.exports.signup = requestHandler(async (req, res, next) => {
 	const { name, email, password } = req.body;
@@ -58,17 +59,55 @@ module.exports.login = requestHandler(async (req, res, next) => {
 	return generateCookieToken(user, res);
 });
 
-module.exports.logout = (req, res, next) => {
-	res.sendStatus(200);
-};
+module.exports.logout = requestHandler(async (req, res, next) => {
+	res.cookie("token", null, {
+		expires: new Date(Date.now()),
+		httpOnly: true,
+	});
+
+	res.status(200).json({ success: true, message: "logout success" });
+});
 
 module.exports.getUser = (req, res, next) => {
 	res.sendStatus(200);
 };
 
-module.exports.forgotPassword = (req, res, next) => {
-	res.sendStatus(200);
-};
+module.exports.forgotPassword = requestHandler(async (req, res, next) => {
+	const { email } = req.body;
+
+	console.log(email);
+	if (!email) {
+		throw new CustomError("Email is required");
+	}
+
+	const user = await User.findOne({ email: email });
+
+	if (!user) {
+		throw new CustomError("User not found");
+	}
+
+	const forogotToken = await user.getForgotPasswordToken();
+
+	await user.save({ validateBeforeSave: false });
+
+	const resetUrl = `${req.protocol}://${req.get("host")}/api/v1/password/reset/${forogotToken}`;
+
+	const emailOption = {
+		to: email,
+		subject: "SiteShop Reset Passwrod Reuqest ",
+		text: "Your Password reset url is " + resetUrl,
+	};
+
+	try {
+		await sendEmail(emailOption);
+		res.status(200).json({ success: true, message: "Reset token sent to email" });
+	} catch (err) {
+		user.forgotPasswordToken = undefined;
+		user.forgotPasswordExpiary = undefined;
+		await user.save({ validateBeforeSave: false });
+		throw new CustomError("Failed to send email");
+	}
+});
 
 module.exports.validateResetPassword = (req, res, next) => {
 	res.sendStatus(200);
