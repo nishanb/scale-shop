@@ -66,8 +66,8 @@ userSchema.pre("save", async function (next) {
 });
 
 //validate password with login password
-userSchema.methods.IsvalidPassword = async function (sentPassword) {
-	return await bcrypt.compare(sentPassword, this.password);
+userSchema.methods.IsvalidPassword = function (sentPassword) {
+	return bcrypt.compare(sentPassword, this.password);
 };
 
 //sign and return jwt tokens

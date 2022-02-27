@@ -1,6 +1,6 @@
-const customPromise = require("../middlewares/customPromise");
+const requestHandler = require("../middlewares/requestHandler");
 
-module.exports.home = customPromise(async (req, res) => {
+module.exports.home = requestHandler(async (req, res) => {
 	res.status(200).json({
 		success: true,
 		message: "Hello from API",
