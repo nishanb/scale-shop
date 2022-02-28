@@ -88,8 +88,8 @@ userSchema.methods.getForgotPasswordToken = function () {
 	//getting hash
 	this.forgotPasswordToken = crypto.createHash("sha256").update(token).digest("hex");
 
-	//set expiary time
-	this.forgotPasswordExpiary = Date.now() + 20 * 60 * 1000;
+	//set expiary time (5 Minutes)
+	this.forgotPasswordExpiary = Date.now() + 5 * 60 * 1000;
 
 	return token;
 };

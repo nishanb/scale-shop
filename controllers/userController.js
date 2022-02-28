@@ -4,6 +4,7 @@ const cloudinary = require("cloudinary");
 const requestHandler = require("../middlewares/requestHandler");
 const CustomError = require("../utils/CustomError");
 const sendEmail = require("./../utils/emailHelper");
+const crypto = require("crypto");
 
 module.exports.signup = requestHandler(async (req, res, next) => {
 	const { name, email, password } = req.body;
@@ -90,7 +91,7 @@ module.exports.forgotPassword = requestHandler(async (req, res, next) => {
 
 	await user.save({ validateBeforeSave: false });
 
-	const resetUrl = `${req.protocol}://${req.get("host")}/api/v1/password/reset/${forogotToken}`;
+	const resetUrl = `${req.protocol}://${req.get("host")}/api/v1/user/password/reset/${forogotToken}`;
 
 	const emailOption = {
 		to: email,
@@ -100,8 +101,9 @@ module.exports.forgotPassword = requestHandler(async (req, res, next) => {
 
 	try {
 		await sendEmail(emailOption);
-		res.status(200).json({ success: true, message: "Reset token sent to email" });
+		res.status(200).json({ success: true, message: "Reset token sent to email " + email });
 	} catch (err) {
+		//cleanup db in case of failed to send email
 		user.forgotPasswordToken = undefined;
 		user.forgotPasswordExpiary = undefined;
 		await user.save({ validateBeforeSave: false });
@@ -109,9 +111,30 @@ module.exports.forgotPassword = requestHandler(async (req, res, next) => {
 	}
 });
 
-module.exports.validateResetPassword = (req, res, next) => {
-	res.sendStatus(200);
-};
+module.exports.validateResetPassword = requestHandler(async (req, res, next) => {
+	const token = req.params.token;
+	const encryptedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+	const user = await User.findOne({
+		forgotPasswordToken: encryptedToken,
+		forgotPasswordExpiary: { $gt: Date.now() },
+	});
+
+	if (!user) {
+		throw new CustomError("Token is invalid or expried");
+	}
+
+	if (req.body.password == req.body.confPassword) {
+		throw new CustomError("Password mismatch");
+	}
+
+	user.password = req.body.password;
+	user.forgotPasswordToken = undefined;
+	user.forgotPasswordExpiary = undefined;
+	await user.save();
+
+	res.status(200).json({ success: true, message: "Password is reset" });
+});
 
 module.exports.updatePassword = (req, res, next) => {
 	res.sendStatus(200);
