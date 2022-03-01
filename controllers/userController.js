@@ -69,10 +69,6 @@ module.exports.logout = requestHandler(async (req, res, next) => {
 	res.status(200).json({ success: true, message: "logout success" });
 });
 
-module.exports.getUser = (req, res, next) => {
-	res.sendStatus(200);
-};
-
 module.exports.forgotPassword = requestHandler(async (req, res, next) => {
 	const { email } = req.body;
 
@@ -136,9 +132,32 @@ module.exports.validateResetPassword = requestHandler(async (req, res, next) => 
 	res.status(200).json({ success: true, message: "Password is reset" });
 });
 
-module.exports.updatePassword = (req, res, next) => {
-	res.sendStatus(200);
-};
+module.exports.getUser = requestHandler(async (req, res, next) => {
+	const user = await User.findById(req.user.id);
+	res.status(200).json({ success: true, user });
+});
+
+module.exports.updatePassword = requestHandler(async (req, res, next) => {
+	const { password, oldPassword } = req.body;
+
+	if (!password || !oldPassword) {
+		throw new CustomError("All fields are required");
+	}
+
+	const user = await User.findById(req.user.id).select("+password");
+
+	const oldPasswordMatched = await user.IsvalidPassword(oldPassword);
+
+	if (!oldPasswordMatched) {
+		throw new CustomError("Old Password did not match");
+	}
+
+	user.password = password;
+
+	await user.save();
+
+	res.status(200).json({ success: true, message: "Password update successdfull" });
+});
 
 module.exports.updateUser = (req, res, next) => {
 	res.sendStatus(200);
