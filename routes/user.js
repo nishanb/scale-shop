@@ -19,7 +19,7 @@ router.route("/logout").post(logout);
 
 //user related
 router.route("/dashboard").get(isLoggedIn, getUser);
-router.route("/").patch(updateUser);
+router.route("/").patch(isLoggedIn, updateUser);
 router.route("/password").post(isLoggedIn, updatePassword);
 
 //password related

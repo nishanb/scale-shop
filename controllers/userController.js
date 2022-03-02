@@ -159,6 +159,42 @@ module.exports.updatePassword = requestHandler(async (req, res, next) => {
 	res.status(200).json({ success: true, message: "Password update successdfull" });
 });
 
-module.exports.updateUser = (req, res, next) => {
-	res.sendStatus(200);
-};
+module.exports.updateUser = requestHandler(async (req, res, next) => {
+	if (!req.body.name || !req.body.email) {
+		throw new CustomError("name and email fields are missing");
+	}
+
+	const user = await User.findById(req.user.id);
+
+	let newData = {
+		name: req.body.name,
+		email: req.body.email,
+	};
+
+	//upload new photo
+	if (req.files.photo != undefined) {
+		await cloudinary.v2.uploader.destroy(user.photo.id);
+
+		fileUploadResult = await cloudinary.v2.uploader.upload(req.files.photo.tempFilePath, {
+			folder: "Users",
+			width: 150,
+			crop: "scale",
+		});
+
+		user.photo.id = fileUploadResult.public_id;
+		user.photo.secure_url = fileUploadResult.secure_url;
+
+		newData.photo = {
+			id: fileUploadResult ? fileUploadResult.public_id : undefined,
+			secure_url: fileUploadResult ? fileUploadResult.secure_url : undefined,
+		};
+	}
+
+	const updatedUser = await User.findByIdAndUpdate(req.user.id, newData, {
+		new: true,
+		runValidators: true,
+		useFindAndModify: false,
+	});
+
+	res.status(200).json({ success: true, message: "User update is successfull", user: updatedUser });
+});
