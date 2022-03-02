@@ -198,3 +198,8 @@ module.exports.updateUser = requestHandler(async (req, res, next) => {
 
 	res.status(200).json({ success: true, message: "User update is successfull", user: updatedUser });
 });
+
+module.exports.adminAllUser = requestHandler(async (req, res, next) => {
+	const users = await User.find();
+	res.status(200).json({ users });
+});
