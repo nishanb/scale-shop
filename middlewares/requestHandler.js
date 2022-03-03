@@ -3,8 +3,7 @@ module.exports = (func) => (req, res, next) => {
 		if (err.warn) {
 			err.warn(res);
 		} else {
-			console.log(err);
-			next();
+			res.status(400).json({ success: false, message: "Invalid request : " + err });
 		}
 	});
 };

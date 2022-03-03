@@ -203,3 +203,57 @@ module.exports.adminAllUser = requestHandler(async (req, res, next) => {
 	const users = await User.find();
 	res.status(200).json({ users });
 });
+
+module.exports.mananagerAllUser = requestHandler(async (req, res, next) => {
+	const users = await User.find({ role: "user" });
+	res.status(200).json({ users });
+});
+
+module.exports.adminReadUser = requestHandler(async (req, res, next) => {
+	const userId = req.params.id;
+	let user;
+
+	user = await User.findById(userId);
+
+	if (!user) {
+		throw new CustomError(`User not found with id ${userId}`, 404);
+	}
+
+	res.status(200).json({ user });
+});
+
+module.exports.adminUpdateUser = requestHandler(async (req, res, next) => {
+	const userId = req.params.id;
+	let user;
+
+	user = await User.findById(userId);
+
+	if (!user) {
+		throw new CustomError(`User not found with id ${userId}`, 404);
+	}
+
+	const { name } = req.body;
+	user.name = name;
+	await user.save();
+
+	res.status(200).json({ user });
+});
+
+module.exports.adminDeleteUser = requestHandler(async (req, res, next) => {
+	const userId = req.params.id;
+	let user;
+
+	user = await User.findById(userId);
+
+	if (!user) {
+		throw new CustomError(`User not found with id ${userId}`, 404);
+	}
+
+	if (user.photo.id) {
+		await cloudinary.v2.uploader.destroy(user.photo.id);
+	}
+
+	await user.remove();
+
+	res.status(200).json({ success: true, msg: "user deleted successfully" });
+});
