@@ -29,5 +29,6 @@ app.get("/photo", (req, res) => {
 //routes middlewares
 app.use("/api/v1", require("./routes/home"));
 app.use("/api/v1/user", require("./routes/user"));
+app.use("/api/v1/product", require("./routes/product"));
 
 module.exports = app;
