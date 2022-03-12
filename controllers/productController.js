@@ -2,6 +2,7 @@ const requestHandler = require("../middlewares/requestHandler");
 const Product = require("../models/Product");
 const CustomError = require("../utils/CustomError");
 const cloudinary = require("cloudinary");
+const WhereClause = require("../utils/whereClause");
 
 module.exports.test = requestHandler(async (req, res) => {
 	console.log(req.query);
@@ -42,7 +43,20 @@ module.exports.createProduct = requestHandler(async (req, res, next) => {
 
 	res.status(200).json({
 		success: true,
-		message: "Hello from product page",
+		message: "Product created successfully",
 		product,
+	});
+});
+
+module.exports.readAllProduct = requestHandler(async (req, res, next) => {
+	const resultPerPage = 2;
+
+	let products = new WhereClause(Product.find(), req.query).search().filter().pager(resultPerPage);
+	products = await products.base;
+
+	res.status(200).json({
+		success: true,
+		products: products,
+		page: parseInt(req.query.page) || 1,
 	});
 });
